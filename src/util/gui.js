@@ -94,6 +94,7 @@ var GUI = (function (scope) {
 			'source':'cartesian',
 			'equation':'',
 			'points':'', // For convex hull
+			'pointsPentachoron': '', // For pentachoron http://eusebeia.dyndns.org/4d/5-cell.html
 			'param_a':'', // These are the ranges the parameters take
 			'param_b':'',
 			//'param_c':'',
@@ -148,6 +149,7 @@ var GUI = (function (scope) {
 		this.defaults['4D'] = {
 			'equation':'x^2+y^2+z^2+w^2 = 10',
 			'points':'(-5,-5,-5,-5),(5,-5,-5,-5),(-5,5,-5,-5),(5,5,-5,-5),(-5,-5,5,-5),(5,-5,5,-5),(-5,5,5,-5),(5,5,5,-5),(-5,-5,-5,5),(5,-5,-5,5),(-5,5,-5,5),(5,5,-5,5),(-5,-5,5,5),(5,-5,5,5),(-5,5,5,5),(5,5,5,5)' , // Small tesseract
+			'pointsPentachoron':'(-5,-5,-5,-5),(5,-5,-5,-5),(-5,5,-5,-5),(5,5,-5,-5),(-5,-5,5,-5)' ,
 			'resolution':'low',
 			'param_eq_x':'',
 			'param_eq_y':'',
@@ -188,7 +190,7 @@ var GUI = (function (scope) {
 
 		let inputOptions = ['cartesian','parametric','convex-hull'];
 		if(mode == "4D"){
-			inputOptions = ['cartesian','convex-hull','tetrahedron'];
+			inputOptions = ['cartesian', 'convex-hull','pentachoron'];
 		}
 
 		shapeProperties.add(params, 'source',inputOptions).onChange(function(val){
@@ -197,16 +199,23 @@ var GUI = (function (scope) {
 				current_scope.destroyParamSource();
 				current_scope.initCartesianSource();
 			}
-			if(val == 'parametric' && current_scope.last_source != 'parametric'){
+			else if(val == 'parametric' && current_scope.last_source != 'parametric'){
 				current_scope.destroyConvexSource();
 				current_scope.destroyCartesianSource();
 				current_scope.initParamSource();
 			}
-			if(val == 'convex-hull' && current_scope.last_source != 'convex-hull'){
+			else if(val == 'convex-hull' && current_scope.last_source != 'convex-hull'){
+				current_scope.destroyConvexSource();
 				current_scope.destroyCartesianSource();
 				current_scope.destroyParamSource();
 				current_scope.initConvexSource();
 			}
+			else if ( val == 'pentachoron' && current_scope.last_source != 'pentachoron'){
+				current_scope.destroyConvexSource();
+				current_scope.destroyCartesianSource();
+				current_scope.destroyParamSource();
+				current_scope.initPentachoronSource();
+			} else console.error( 'shapeProperties: val : ' + val );
 			current_scope.last_source = val
 
 			if(callbacks['source']) callbacks['source'](mode_obj,val);
@@ -387,6 +396,29 @@ var GUI = (function (scope) {
 		}
 
 		this.builtin_arr_convex = this.constructExampleItems(this.mode,'convex-hull');
+
+
+		this.convexSourceItems = arr;
+	};
+
+	GUI.prototype.initPentachoronSource = function () {
+		var arr = [];
+		var callbacks = this.callbacks;
+		var mode_obj = this.mode_obj;
+
+		var points = this.shapeProperties.add( this.params, 'pointsPentachoron' ).onChange( function ( val ) {
+			if ( callbacks['points'] ) callbacks['points']( mode_obj, val );
+		} ).listen();
+		arr.push( points );
+
+		if ( this.mode == '4D' ) {
+			var useQHull = this.shapeProperties.add( this.params, 'qhull' ).name( "Use QHull Server" ).listen().onChange( function ( val ) {
+				if ( callbacks['qhull'] ) callbacks['qhull']( mode_obj, val );
+			} );
+			arr.push( useQHull );
+		}
+
+		this.builtin_arr_convex = this.constructExampleItems( this.mode, 'convex-hull' );
 
 
 		this.convexSourceItems = arr;
