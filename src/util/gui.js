@@ -188,7 +188,7 @@ var GUI = (function (scope) {
 
 		let inputOptions = ['cartesian','parametric','convex-hull'];
 		if(mode == "4D"){
-			inputOptions = ['cartesian','convex-hull','tetrahedron'];
+			inputOptions = ['cartesian','convex-hull'];
 		}
 
 		shapeProperties.add(params, 'source',inputOptions).onChange(function(val){
